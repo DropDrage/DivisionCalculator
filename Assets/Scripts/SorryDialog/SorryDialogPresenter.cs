@@ -5,8 +5,7 @@ namespace SorryDialog
 {
     public interface ISorryDialogPresenter
     {
-        event Action ClearEquation;
-        event Action QuitAndClear;
+        event Action CreateNewEquation;
 
         void Show();
 
@@ -19,8 +18,7 @@ namespace SorryDialog
     {
         private readonly ISorryDialogView _view;
 
-        public event Action ClearEquation;
-        public event Action QuitAndClear;
+        public event Action CreateNewEquation;
 
 
         public SorryDialogPresenter(ISorryDialogView view)
@@ -36,13 +34,12 @@ namespace SorryDialog
 
         public void NewEquation()
         {
-            ClearEquation?.Invoke();
+            CreateNewEquation?.Invoke();
             _view.Close();
         }
 
         public void Quit()
         {
-            QuitAndClear?.Invoke();
             Application.Quit();
         }
     }

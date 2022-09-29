@@ -44,10 +44,10 @@ namespace Calculator
         {
             _view = view;
 
-            RestoreExpression();
+            RestoreEquation();
         }
 
-        private async void RestoreExpression()
+        private async void RestoreEquation()
         {
             var savedEquation = await _equationStorage.Get();
             _view.Expression = savedEquation.Expression;
@@ -56,19 +56,23 @@ namespace Calculator
 
         private void SubscribeSorryDialogEvents()
         {
-            _sorryDialog.ClearEquation += OnClearEquation;
-            _sorryDialog.QuitAndClear += DisableSave;
+            _sorryDialog.CreateNewEquation += OnCreateNewEquation;
         }
 
         private void UnsubscribeSorryDialogEvents()
         {
-            _sorryDialog.ClearEquation -= OnClearEquation;
-            _sorryDialog.QuitAndClear -= DisableSave;
+            _sorryDialog.CreateNewEquation -= OnCreateNewEquation;
         }
 
-        private void OnClearEquation()
+        private void OnCreateNewEquation()
         {
             _view.ClearExpression();
+            EnableSave();
+        }
+
+        private void EnableSave()
+        {
+            _isSaveEnabled = true;
         }
 
         private void DisableSave()
@@ -83,16 +87,27 @@ namespace Calculator
             switch (equation.Validity)
             {
                 case ExpressionValidity.Valid:
-                    var result = equation.Evaluate();
-                    _view.ShowResult(result.ToString());
+                    ShowEvaluationResult(equation);
                     break;
                 case ExpressionValidity.Invalid:
-                    _view.ShowError(ErrorMessage);
-                    _sorryDialog.Show();
+                    ShowError();
+                    DisableSave();
                     break;
                 case ExpressionValidity.Empty: break;
                 default: throw new ArgumentOutOfRangeException();
             }
+        }
+
+        private void ShowEvaluationResult(Equation equation)
+        {
+            var result = equation.Evaluate();
+            _view.ShowResult(result.ToString());
+        }
+
+        private void ShowError()
+        {
+            _view.ShowError(ErrorMessage);
+            _sorryDialog.Show();
         }
 
         public void OnApplicationQuit()
@@ -106,6 +121,7 @@ namespace Calculator
                 _equationStorage.Clear();
             }
         }
+
 
         public void Dispose()
         {
