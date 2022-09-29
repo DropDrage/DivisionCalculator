@@ -8,9 +8,9 @@ namespace Calculator
     {
         ISorryDialogPresenter SorryDialog { set; }
 
-        void ExpressionChanged(string expression);
-
         void CalculateResult();
+
+        void OnApplicationQuit();
     }
 
     public class CalculatorPresenter : ICalculatorPresenter
@@ -18,9 +18,9 @@ namespace Calculator
         private const string ErrorMessage = "Error";
 
         private readonly ICalculatorView _view;
-        private readonly Equation _equation = new();
-
         private readonly EquationStorage _equationStorage = new();
+
+        private bool _isSaveEnabled = true;
 
         private ISorryDialogPresenter _sorryDialog;
         public ISorryDialogPresenter SorryDialog
@@ -29,50 +29,61 @@ namespace Calculator
             {
                 if (_sorryDialog != null)
                 {
-                    _sorryDialog.ClearEquation -= OnClearEquation;
+                    UnsubscribeSorryDialogEvents();
                 }
 
                 _sorryDialog = value;
-                _sorryDialog.ClearEquation += OnClearEquation;
+                SubscribeSorryDialogEvents();
             }
         }
+
+        private Equation Equation => new(_view.Expression);
 
 
         public CalculatorPresenter(ICalculatorView view)
         {
             _view = view;
 
-            InitializeView();
+            RestoreExpression();
         }
 
-        private async void InitializeView()
+        private async void RestoreExpression()
         {
             var savedEquation = await _equationStorage.Get();
             _view.Expression = savedEquation.Expression;
-            _equation.Expression = savedEquation.Expression;
         }
 
+
+        private void SubscribeSorryDialogEvents()
+        {
+            _sorryDialog.ClearEquation += OnClearEquation;
+            _sorryDialog.QuitAndClear += DisableSave;
+        }
+
+        private void UnsubscribeSorryDialogEvents()
+        {
+            _sorryDialog.ClearEquation -= OnClearEquation;
+            _sorryDialog.QuitAndClear -= DisableSave;
+        }
 
         private void OnClearEquation()
         {
-            _equation.Clear();
-            _view.ClearExpressionWithoutChangeEvent();
+            _view.ClearExpression();
         }
 
-
-        public void ExpressionChanged(string expression)
+        private void DisableSave()
         {
-            _equation.Expression = expression;
-            _equationStorage.Save(new EquationDto(expression));
+            _isSaveEnabled = false;
         }
+
 
         public void CalculateResult()
         {
-            var equationValidity = _equation.Validate();
-            switch (equationValidity)
+            var equation = Equation;
+            switch (equation.Validity)
             {
                 case ExpressionValidity.Valid:
-                    var result = _equation.Evaluate();
+                    var result = equation.Evaluate();
                     _view.ShowResult(result.ToString());
                     break;
                 case ExpressionValidity.Invalid:
@@ -84,10 +95,21 @@ namespace Calculator
             }
         }
 
+        public void OnApplicationQuit()
+        {
+            if (_isSaveEnabled)
+            {
+                _equationStorage.Save(new EquationDto(Equation.Expression));
+            }
+            else
+            {
+                _equationStorage.Clear();
+            }
+        }
 
         public void Dispose()
         {
-            _sorryDialog.ClearEquation -= OnClearEquation;
+            UnsubscribeSorryDialogEvents();
         }
     }
 }

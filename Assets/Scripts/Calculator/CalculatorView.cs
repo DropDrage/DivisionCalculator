@@ -6,13 +6,13 @@ namespace Calculator
 {
     public interface ICalculatorView
     {
-        string Expression { set; }
+        string Expression { get; set; }
 
         void ShowResult(string result);
 
         void ShowError(string error);
-        
-        void ClearExpressionWithoutChangeEvent();
+
+        void ClearExpression();
     }
 
     public class CalculatorView : MonoBehaviour, ICalculatorView
@@ -21,9 +21,9 @@ namespace Calculator
 
         private ICalculatorPresenter _presenter;
 
-
         public string Expression
         {
+            get => expressionInput.text;
             set => expressionInput.text = value;
         }
 
@@ -31,25 +31,24 @@ namespace Calculator
         private void Awake()
         {
             _presenter = new CalculatorPresenter(this);
-            expressionInput.onValueChanged.AddListener(OnExpressionChanged);
+        }
+
+        private void OnApplicationQuit()
+        {
+            _presenter.OnApplicationQuit();
         }
 
         private void OnDestroy()
         {
             _presenter.Dispose();
         }
-        
-        
+
+
         public void OnSorryDialogInitialized(ISorryDialogPresenter sorryDialog)
         {
             _presenter.SorryDialog = sorryDialog;
         }
 
-
-        private void OnExpressionChanged(string expression)
-        {
-            _presenter.ExpressionChanged(expression);
-        }
 
         public void CalculateResult()
         {
@@ -64,16 +63,12 @@ namespace Calculator
 
         public void ShowError(string error)
         {
-            expressionInput.onValueChanged.RemoveListener(OnExpressionChanged);
             Expression = error;
-            expressionInput.onValueChanged.AddListener(OnExpressionChanged);
         }
 
-        public void ClearExpressionWithoutChangeEvent()
+        public void ClearExpression()
         {
-            expressionInput.onValueChanged.RemoveListener(OnExpressionChanged);
             Expression = string.Empty;
-            expressionInput.onValueChanged.AddListener(OnExpressionChanged);
         }
     }
 }

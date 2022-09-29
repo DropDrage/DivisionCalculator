@@ -1,5 +1,4 @@
 ﻿using System;
-using Data;
 using UnityEngine;
 
 namespace SorryDialog
@@ -7,9 +6,10 @@ namespace SorryDialog
     public interface ISorryDialogPresenter
     {
         event Action ClearEquation;
-        
+        event Action QuitAndClear;
+
         void Show();
-        
+
         void NewEquation();
 
         void Quit();
@@ -19,9 +19,8 @@ namespace SorryDialog
     {
         private readonly ISorryDialogView _view;
 
-        private readonly EquationStorage _equationStorage = new();
-
         public event Action ClearEquation;
+        public event Action QuitAndClear;
 
 
         public SorryDialogPresenter(ISorryDialogView view)
@@ -43,7 +42,7 @@ namespace SorryDialog
 
         public void Quit()
         {
-            _equationStorage.Clear();
+            QuitAndClear?.Invoke();
             Application.Quit();
         }
     }

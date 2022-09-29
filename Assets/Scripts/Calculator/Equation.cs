@@ -8,10 +8,19 @@ namespace Calculator
     {
         private static readonly Regex ValidationRegex = new(@"^[\d/]+$");
 
-        public string Expression { get; set; } = string.Empty;
+        public string Expression { get; }
+
+        public ExpressionValidity Validity { get; }
 
 
-        public ExpressionValidity Validate()
+        public Equation(string expression)
+        {
+            Expression = expression;
+
+            Validity = Validate();
+        }
+
+        private ExpressionValidity Validate()
         {
             if (string.IsNullOrEmpty(Expression))
             {
@@ -25,21 +34,24 @@ namespace Calculator
             return ExpressionValidity.Invalid;
         }
 
+
         /// <summary>
-        /// Check validity with <see cref="Validate"/> before using this method.
-        /// It should be <see cref="ExpressionValidity.Valid"/>.
+        /// Check <see cref="Validity"/> before using this method.
         /// </summary>
         /// <returns><see cref="Expression"/> evaluation result</returns>
+        /// <exception cref="InvalidOperationException">
+        ///     If <see cref="Validity"/> isn't <see cref="ExpressionValidity.Valid"/>
+        /// </exception>
         public float Evaluate()
         {
+            if (Validity != ExpressionValidity.Valid)
+            {
+                throw new InvalidOperationException($"{nameof(Validity)} must be {nameof(ExpressionValidity.Valid)}");
+            }
+
             return Expression.Split('/')
                 .Select(Convert.ToSingle)
                 .Aggregate((acc, value) => acc / value);
-        }
-
-        public void Clear()
-        {
-            Expression = string.Empty;
         }
     }
 }
