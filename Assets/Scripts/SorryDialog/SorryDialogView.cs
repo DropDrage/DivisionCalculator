@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
+using Zenject;
 
 namespace SorryDialog
 {
@@ -14,23 +14,16 @@ namespace SorryDialog
     {
         private ISorryDialogPresenter _presenter;
 
-        public UnityEvent<ISorryDialogPresenter> initialized;
-
 
         private void Start()
         {
             Close();
-
-            _presenter = new SorryDialogPresenter(this);
-
-            InvokeInitialized();
         }
 
-        private void InvokeInitialized()
+        [Inject]
+        private void Construct(ISorryDialogPresenter presenter)
         {
-            initialized.Invoke(_presenter);
-            initialized.RemoveAllListeners();
-            initialized = null;
+            _presenter = presenter;
         }
 
 

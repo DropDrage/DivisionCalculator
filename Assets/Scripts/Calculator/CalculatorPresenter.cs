@@ -6,8 +6,6 @@ namespace Calculator
 {
     public interface ICalculatorPresenter : IDisposable
     {
-        ISorryDialogPresenter SorryDialog { set; }
-
         void CalculateResult();
 
         void OnApplicationQuit();
@@ -40,9 +38,10 @@ namespace Calculator
         private Equation Equation => new(_view.Expression);
 
 
-        public CalculatorPresenter(ICalculatorView view)
+        public CalculatorPresenter(ICalculatorView view, ISorryDialogPresenter sorryDialog)
         {
             _view = view;
+            SorryDialog = sorryDialog;
 
             RestoreEquation();
         }

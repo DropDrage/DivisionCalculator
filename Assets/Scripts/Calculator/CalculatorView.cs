@@ -1,6 +1,6 @@
-﻿using SorryDialog;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
+using Zenject;
 
 namespace Calculator
 {
@@ -28,9 +28,10 @@ namespace Calculator
         }
 
 
-        private void Awake()
+        [Inject]
+        private void Construct(ICalculatorPresenter presenter)
         {
-            _presenter = new CalculatorPresenter(this);
+            _presenter = presenter;
         }
 
         private void OnApplicationQuit()
@@ -41,12 +42,6 @@ namespace Calculator
         private void OnDestroy()
         {
             _presenter.Dispose();
-        }
-
-
-        public void OnSorryDialogInitialized(ISorryDialogPresenter sorryDialog)
-        {
-            _presenter.SorryDialog = sorryDialog;
         }
 
 
