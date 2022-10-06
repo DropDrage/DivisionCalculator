@@ -15,11 +15,6 @@ namespace SorryDialog
         private ISorryDialogPresenter _presenter;
 
 
-        private void Start()
-        {
-            Close();
-        }
-
         [Inject]
         private void Construct(ISorryDialogPresenter presenter)
         {

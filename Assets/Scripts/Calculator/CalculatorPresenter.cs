@@ -21,7 +21,7 @@ namespace Calculator
         private bool _isSaveEnabled = true;
 
         private ISorryDialogPresenter _sorryDialog;
-        public ISorryDialogPresenter SorryDialog
+        private ISorryDialogPresenter SorryDialog
         {
             set
             {
