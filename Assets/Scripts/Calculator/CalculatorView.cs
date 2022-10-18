@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using SorryDialog;
+using TMPro;
 using UnityEngine;
 using Zenject;
 
@@ -20,6 +21,7 @@ namespace Calculator
         [SerializeField] private TMP_InputField expressionInput;
 
         private ICalculatorPresenter _presenter;
+        private ISorryDialogView _sorryDialog;
 
         public string Expression
         {
@@ -28,15 +30,16 @@ namespace Calculator
 
 
         [Inject]
-        private void Construct(ICalculatorPresenter presenter)
+        private void Construct(ICalculatorPresenter presenter, ISorryDialogView sorryDialog)
         {
             _presenter = presenter;
+            _sorryDialog = sorryDialog;
         }
 
 
         private void OnDestroy()
         {
-            _presenter.Dispose();
+            _sorryDialog?.RemoveOnNewEquationListener(_presenter.OnCreateNewEquation);
         }
 
 
@@ -59,6 +62,9 @@ namespace Calculator
         void ICalculatorView.ShowError(string error)
         {
             Expression = error;
+
+            _sorryDialog.Show();
+            _sorryDialog.AddOnNewEquationListener(_presenter.OnCreateNewEquation);
         }
 
         void ICalculatorView.ClearExpression()

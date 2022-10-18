@@ -1,15 +1,16 @@
 ﻿using System;
 using Data;
-using SorryDialog;
 using Zenject;
 
 namespace Calculator
 {
-    public interface ICalculatorPresenter : IDisposable
+    public interface ICalculatorPresenter
     {
         void OnExpressionChanged(string expression);
 
         void CalculateResult();
+
+        void OnCreateNewEquation();
     }
 
     public class CalculatorPresenter : ICalculatorPresenter, IInitializable
@@ -19,27 +20,11 @@ namespace Calculator
         [Inject] private readonly ICalculatorView _view;
         private readonly EquationService _service;
 
-        private ISorryDialogPresenter _sorryDialog;
-        private ISorryDialogPresenter SorryDialog
-        {
-            set
-            {
-                if (_sorryDialog != null)
-                {
-                    UnsubscribeSorryDialogEvents();
-                }
-
-                _sorryDialog = value;
-                SubscribeSorryDialogEvents();
-            }
-        }
-
         private Equation _equation;
 
 
-        public CalculatorPresenter(ISorryDialogPresenter sorryDialog, EquationService service)
+        public CalculatorPresenter(EquationService service)
         {
-            SorryDialog = sorryDialog;
             _service = service;
         }
 
@@ -53,22 +38,6 @@ namespace Calculator
         {
             var savedEquation = _equation = await _service.GetSavedEquation();
             _view.Expression = savedEquation.Expression;
-        }
-
-
-        private void SubscribeSorryDialogEvents()
-        {
-            _sorryDialog.CreateNewEquation += OnCreateNewEquation;
-        }
-
-        private void UnsubscribeSorryDialogEvents()
-        {
-            _sorryDialog.CreateNewEquation -= OnCreateNewEquation;
-        }
-
-        private void OnCreateNewEquation()
-        {
-            _view.ClearExpression();
         }
 
 
@@ -101,13 +70,11 @@ namespace Calculator
         private void ShowError()
         {
             _view.ShowError(ErrorMessage);
-            _sorryDialog.Show();
         }
 
-
-        public void Dispose()
+        void ICalculatorPresenter.OnCreateNewEquation()
         {
-            UnsubscribeSorryDialogEvents();
+            _view.ClearExpression();
         }
     }
 }

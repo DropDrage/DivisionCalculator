@@ -5,11 +5,9 @@ using Zenject;
 
 namespace SorryDialog
 {
-    public interface ISorryDialogPresenter
+    public interface ISorryDialogPresenter : IDisposable
     {
         event Action CreateNewEquation;
-
-        void Show();
 
         void NewEquation();
 
@@ -30,21 +28,30 @@ namespace SorryDialog
         }
 
 
-        void ISorryDialogPresenter.Show()
-        {
-            _view.Show();
-        }
-
         void ISorryDialogPresenter.NewEquation()
         {
             CreateNewEquation?.Invoke();
+            ClearEvents();
             _view.Close();
         }
 
         void ISorryDialogPresenter.Quit()
         {
             _equationService.IsSavingEnabled = false;
+            ClearEvents();
             Application.Quit();
+        }
+
+
+        public void Dispose()
+        {
+            ClearEvents();
+        }
+
+
+        private void ClearEvents()
+        {
+            CreateNewEquation = null;
         }
     }
 }
