@@ -33,12 +33,12 @@ namespace SorryDialog
         }
 
 
-        public void Show()
+        void ISorryDialogView.Show()
         {
             gameObject.SetActive(true);
         }
 
-        public void Close()
+        void ISorryDialogView.Close()
         {
             gameObject.SetActive(false);
         }

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using ModestTree;
 #if !NOT_UNITY3D
@@ -76,6 +77,11 @@ namespace Zenject.Internal
             {
                 if (constructor == null)
                 {
+                    if (ReflectionTypeAnalyzer.ConstructorChoiceStrategy == ConstructorChoiceStrategy.InjectAttribute)
+                    {
+                        return null;
+                    }
+
                     // No choice in this case except to use the slow Activator.CreateInstance
                     // as far as I know
                     // This should be rare though and only seems to occur when instantiating
@@ -99,7 +105,8 @@ namespace Zenject.Internal
         static ZenFactoryMethod TryCreateFactoryMethodCompiledLambdaExpression(
             Type type, ConstructorInfo constructor)
         {
-#if NET_4_6 && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
+#if (NET_4_6 || NET_STANDARD_2_0) && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
+
             if (type.ContainsGenericParameters)
             {
                 return null;
@@ -110,8 +117,9 @@ namespace Zenject.Internal
             if (constructor == null)
             {
                 return Expression.Lambda<ZenFactoryMethod>(
-                    Expression.Convert(
-                        Expression.New(type), typeof(object)), param).Compile();
+                        Expression.Convert(
+                            Expression.New(type), typeof(object)), param)
+                    .Compile();
             }
 
             ParameterInfo[] par = constructor.GetParameters();
@@ -125,8 +133,9 @@ namespace Zenject.Internal
             }
 
             return Expression.Lambda<ZenFactoryMethod>(
-                Expression.Convert(
-                    Expression.New(constructor, args), typeof(object)), param).Compile();
+                    Expression.Convert(
+                        Expression.New(constructor, args), typeof(object)), param)
+                .Compile();
 #else
             return null;
 #endif
@@ -134,7 +143,8 @@ namespace Zenject.Internal
 
         static ZenInjectMethod TryCreateActionForMethod(MethodInfo methodInfo)
         {
-#if NET_4_6 && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
+#if (NET_4_6 || NET_STANDARD_2_0) && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
+
             if (methodInfo.DeclaringType.ContainsGenericParameters)
             {
                 return null;
@@ -159,9 +169,10 @@ namespace Zenject.Internal
             }
 
             return Expression.Lambda<ZenInjectMethod>(
-                Expression.Call(
-                    Expression.Convert(instanceParam, methodInfo.DeclaringType), methodInfo, args),
-                instanceParam, argsParam).Compile();
+                    Expression.Call(
+                        Expression.Convert(instanceParam, methodInfo.DeclaringType), methodInfo, args),
+                    instanceParam, argsParam)
+                .Compile();
 #else
             return null;
 #endif
@@ -239,7 +250,8 @@ namespace Zenject.Internal
 
         static ZenMemberSetterMethod TryGetSetterAsCompiledExpression(Type parentType, MemberInfo memInfo)
         {
-#if NET_4_6 && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
+#if (NET_4_6 || NET_STANDARD_2_0) && !ENABLE_IL2CPP && !ZEN_DO_NOT_USE_COMPILED_EXPRESSIONS
+
             if (parentType.ContainsGenericParameters)
             {
                 return null;
@@ -251,19 +263,22 @@ namespace Zenject.Internal
             // It seems that for readonly fields, we have to use the slower approach below
             // As discussed here: https://www.productiverage.com/trying-to-set-a-readonly-autoproperty-value-externally-plus-a-little-benchmarkdotnet
             // We have to skip value types because those can only be set by reference using an lambda expression
-            if (!parentType.IsValueType() && (fieldInfo == null || !fieldInfo.IsInitOnly) && (propInfo == null || propInfo.CanWrite))
+            if (!parentType.IsValueType() && (fieldInfo == null || !fieldInfo.IsInitOnly) &&
+                (propInfo == null || propInfo.CanWrite))
             {
                 Type memberType = fieldInfo != null
-                    ? fieldInfo.FieldType : propInfo.PropertyType;
+                    ? fieldInfo.FieldType
+                    : propInfo.PropertyType;
 
                 var typeParam = Expression.Parameter(typeof(object));
                 var valueParam = Expression.Parameter(typeof(object));
 
                 return Expression.Lambda<ZenMemberSetterMethod>(
-                    Expression.Assign(
-                        Expression.MakeMemberAccess(Expression.Convert(typeParam, parentType), memInfo),
-                        Expression.Convert(valueParam, memberType)),
-                        typeParam, valueParam).Compile();
+                        Expression.Assign(
+                            Expression.MakeMemberAccess(Expression.Convert(typeParam, parentType), memInfo),
+                            Expression.Convert(valueParam, memberType)),
+                        typeParam, valueParam)
+                    .Compile();
             }
 #endif
 

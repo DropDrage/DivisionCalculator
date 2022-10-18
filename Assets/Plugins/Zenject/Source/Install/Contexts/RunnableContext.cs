@@ -1,6 +1,10 @@
-﻿using ModestTree;
+﻿#if !NOT_UNITY3D
+using ModestTree;
 using UnityEngine;
-#if !NOT_UNITY3D
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Zenject
 {
@@ -13,6 +17,29 @@ namespace Zenject
         static bool _staticAutoRun = true;
 
         public bool Initialized { get; private set; }
+
+#if UNITY_EDITOR
+        // Required for disabling domain reload in enter the play mode feature. See: https://docs.unity3d.com/Manual/DomainReloading.html
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticValues()
+        {
+            if (!EditorSettings.enterPlayModeOptionsEnabled)
+            {
+                return;
+            }
+
+            _staticAutoRun = true;
+        }
+#endif
+
+#if UNITY_EDITOR
+        protected override void ResetInstanceFields()
+        {
+            base.ResetInstanceFields();
+
+            Initialized = false;
+        }
+#endif
 
         protected void Initialize()
         {

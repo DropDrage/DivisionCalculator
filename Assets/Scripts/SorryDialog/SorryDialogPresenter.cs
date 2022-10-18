@@ -1,5 +1,7 @@
 ﻿using System;
+using Data;
 using UnityEngine;
+using Zenject;
 
 namespace SorryDialog
 {
@@ -16,30 +18,32 @@ namespace SorryDialog
 
     public class SorryDialogPresenter : ISorryDialogPresenter
     {
-        private readonly ISorryDialogView _view;
+        [Inject] private readonly ISorryDialogView _view;
+        private readonly EquationService _equationService;
 
         public event Action CreateNewEquation;
 
 
-        public SorryDialogPresenter(ISorryDialogView view)
+        public SorryDialogPresenter(EquationService equationService)
         {
-            _view = view;
+            _equationService = equationService;
         }
 
 
-        public void Show()
+        void ISorryDialogPresenter.Show()
         {
             _view.Show();
         }
 
-        public void NewEquation()
+        void ISorryDialogPresenter.NewEquation()
         {
             CreateNewEquation?.Invoke();
             _view.Close();
         }
 
-        public void Quit()
+        void ISorryDialogPresenter.Quit()
         {
+            _equationService.IsSavingEnabled = false;
             Application.Quit();
         }
     }

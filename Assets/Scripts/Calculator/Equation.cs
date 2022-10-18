@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Data;
 
 namespace Calculator
 {
-    public class Equation
+    public record Equation
     {
         private static readonly Regex ValidationRegex = new(@"^[\d/]+$");
 
@@ -16,8 +17,11 @@ namespace Calculator
         public Equation(string expression)
         {
             Expression = expression;
-
             Validity = Validate();
+        }
+
+        public Equation(EquationDto dto) : this(dto.Expression)
+        {
         }
 
         private ExpressionValidity Validate()
@@ -53,5 +57,8 @@ namespace Calculator
                 .Select(Convert.ToSingle)
                 .Aggregate((acc, value) => acc / value);
         }
+
+
+        public EquationDto ToDto() => new(Expression);
     }
 }

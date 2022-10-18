@@ -6,7 +6,7 @@ namespace Calculator
 {
     public interface ICalculatorView
     {
-        string Expression { get; set; }
+        string Expression { set; }
 
         void ShowResult(string result);
 
@@ -23,7 +23,6 @@ namespace Calculator
 
         public string Expression
         {
-            get => expressionInput.text;
             set => expressionInput.text = value;
         }
 
@@ -34,10 +33,6 @@ namespace Calculator
             _presenter = presenter;
         }
 
-        private void OnApplicationQuit()
-        {
-            _presenter.OnApplicationQuit();
-        }
 
         private void OnDestroy()
         {
@@ -45,23 +40,28 @@ namespace Calculator
         }
 
 
+        public void OnExpressionChanged(string expression)
+        {
+            _presenter.OnExpressionChanged(expression);
+        }
+
         public void CalculateResult()
         {
             _presenter.CalculateResult();
         }
 
 
-        public void ShowResult(string result)
+        void ICalculatorView.ShowResult(string result)
         {
             Expression = result;
         }
 
-        public void ShowError(string error)
+        void ICalculatorView.ShowError(string error)
         {
             Expression = error;
         }
 
-        public void ClearExpression()
+        void ICalculatorView.ClearExpression()
         {
             Expression = string.Empty;
         }

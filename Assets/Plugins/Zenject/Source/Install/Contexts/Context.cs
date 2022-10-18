@@ -8,6 +8,7 @@ using ModestTree;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
+
 #endif
 
 namespace Zenject
@@ -17,13 +18,10 @@ namespace Zenject
         [SerializeField]
         List<ScriptableObjectInstaller> _scriptableObjectInstallers = new List<ScriptableObjectInstaller>();
 
-        [FormerlySerializedAs("Installers")]
-        [FormerlySerializedAs("_installers")]
-        [SerializeField]
+        [FormerlySerializedAs("Installers")] [FormerlySerializedAs("_installers")] [SerializeField]
         List<MonoInstaller> _monoInstallers = new List<MonoInstaller>();
 
-        [SerializeField]
-        List<MonoInstaller> _installerPrefabs = new List<MonoInstaller>();
+        [SerializeField] List<MonoInstaller> _installerPrefabs = new List<MonoInstaller>();
 
         List<InstallerBase> _normalInstallers = new List<InstallerBase>();
         List<Type> _normalInstallerTypes = new List<Type>();
@@ -82,13 +80,38 @@ namespace Zenject
             }
         }
 
-        public abstract DiContainer Container
-        {
-            get;
-        }
-
+        public abstract DiContainer Container { get; }
         public abstract IEnumerable<GameObject> GetRootGameObjects();
 
+        protected virtual void Awake()
+        {
+#if UNITY_EDITOR
+            // When Scene Reloading is disabled in Enter The Play Mode settings, we need to reset all non-serialized fields
+            // https://docs.unity3d.com/Manual/SceneReloading.html
+            EditorApplication.playModeStateChanged += OnEditorPlayModeChanged;
+#endif
+        }
+
+#if UNITY_EDITOR
+        void OnEditorPlayModeChanged(PlayModeStateChange obj)
+        {
+            if (!EditorSettings.enterPlayModeOptionsEnabled)
+                return;
+
+            // If Scene Reload is enabled, we don't need to reset instance fields.
+            if ((EditorSettings.enterPlayModeOptions & EnterPlayModeOptions.DisableSceneReload) == 0)
+                return;
+
+            if (obj == PlayModeStateChange.EnteredEditMode)
+                ResetInstanceFields();
+        }
+
+        protected virtual void ResetInstanceFields()
+        {
+            _normalInstallers.Clear();
+            _normalInstallerTypes.Clear();
+        }
+#endif
 
         public void AddNormalInstallerType(Type installerType)
         {

@@ -10,6 +10,11 @@ namespace Zenject
     // You might also want to use this installer in a ZenjectUnitTestFixture
     public class ZenjectManagersInstaller : Installer<ZenjectManagersInstaller>
     {
+        [Inject]
+        public ZenjectManagersInstaller()
+        {
+        }
+
         public override void InstallBindings()
         {
             Container.Bind(typeof(TickableManager), typeof(InitializableManager), typeof(DisposableManager))

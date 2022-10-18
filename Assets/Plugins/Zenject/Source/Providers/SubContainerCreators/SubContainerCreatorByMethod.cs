@@ -183,7 +183,7 @@ namespace Zenject
     public class SubContainerCreatorByMethod<TParam1, TParam2, TParam3, TParam4> : SubContainerCreatorByMethodBase
     {
         readonly
-#if !NET_4_6
+#if !NET_4_6 && !NET_STANDARD_2_0
             ModestTree.Util.
 #endif
             Action<DiContainer, TParam1, TParam2, TParam3, TParam4> _installMethod;
@@ -191,10 +191,10 @@ namespace Zenject
         public SubContainerCreatorByMethod(
             DiContainer container,
             SubContainerCreatorBindInfo containerBindInfo,
-#if !NET_4_6
+#if !NET_4_6 && !NET_STANDARD_2_0
             ModestTree.Util.
 #endif
-                Action<DiContainer, TParam1, TParam2, TParam3, TParam4> installMethod)
+            Action<DiContainer, TParam1, TParam2, TParam3, TParam4> installMethod)
             : base(container, containerBindInfo)
         {
             _installMethod = installMethod;
@@ -234,7 +234,7 @@ namespace Zenject
         : SubContainerCreatorByMethodBase
     {
         readonly
-#if !NET_4_6
+#if !NET_4_6 && !NET_STANDARD_2_0
             ModestTree.Util.
 #endif
             Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> _installMethod;
@@ -242,10 +242,10 @@ namespace Zenject
         public SubContainerCreatorByMethod(
             DiContainer container,
             SubContainerCreatorBindInfo containerBindInfo,
-#if !NET_4_6
+#if !NET_4_6 && !NET_STANDARD_2_0
             ModestTree.Util.
 #endif
-                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installMethod)
+            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5> installMethod)
             : base(container, containerBindInfo)
         {
             _installMethod = installMethod;
@@ -287,7 +287,7 @@ namespace Zenject
         : SubContainerCreatorByMethodBase
     {
         readonly
-#if !NET_4_6
+#if !NET_4_6 && !NET_STANDARD_2_0
             ModestTree.Util.
 #endif
             Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6> _installMethod;
@@ -295,10 +295,10 @@ namespace Zenject
         public SubContainerCreatorByMethod(
             DiContainer container,
             SubContainerCreatorBindInfo containerBindInfo,
-#if !NET_4_6
+#if !NET_4_6 && !NET_STANDARD_2_0
             ModestTree.Util.
 #endif
-                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6> installMethod)
+            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6> installMethod)
             : base(container, containerBindInfo)
         {
             _installMethod = installMethod;
@@ -342,7 +342,7 @@ namespace Zenject
         TParam9, TParam10> : SubContainerCreatorByMethodBase
     {
         readonly
-#if !NET_4_6
+#if !NET_4_6 && !NET_STANDARD_2_0
             ModestTree.Util.
 #endif
             Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9,
@@ -351,11 +351,11 @@ namespace Zenject
         public SubContainerCreatorByMethod(
             DiContainer container,
             SubContainerCreatorBindInfo containerBindInfo,
-#if !NET_4_6
+#if !NET_4_6 && !NET_STANDARD_2_0
             ModestTree.Util.
 #endif
-                Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9,
-                    TParam10> installMethod)
+            Action<DiContainer, TParam1, TParam2, TParam3, TParam4, TParam5, TParam6, TParam7, TParam8, TParam9,
+                TParam10> installMethod)
             : base(container, containerBindInfo)
         {
             _installMethod = installMethod;

@@ -1,24 +1,23 @@
 ﻿using System;
 using Data;
 using SorryDialog;
+using Zenject;
 
 namespace Calculator
 {
     public interface ICalculatorPresenter : IDisposable
     {
-        void CalculateResult();
+        void OnExpressionChanged(string expression);
 
-        void OnApplicationQuit();
+        void CalculateResult();
     }
 
-    public class CalculatorPresenter : ICalculatorPresenter
+    public class CalculatorPresenter : ICalculatorPresenter, IInitializable
     {
         private const string ErrorMessage = "Error";
 
-        private readonly ICalculatorView _view;
-        private readonly EquationStorage _equationStorage = new();
-
-        private bool _isSaveEnabled = true;
+        [Inject] private readonly ICalculatorView _view;
+        private readonly EquationService _service;
 
         private ISorryDialogPresenter _sorryDialog;
         private ISorryDialogPresenter SorryDialog
@@ -35,20 +34,24 @@ namespace Calculator
             }
         }
 
-        private Equation Equation => new(_view.Expression);
+        private Equation _equation;
 
 
-        public CalculatorPresenter(ICalculatorView view, ISorryDialogPresenter sorryDialog)
+        public CalculatorPresenter(ISorryDialogPresenter sorryDialog, EquationService service)
         {
-            _view = view;
             SorryDialog = sorryDialog;
+            _service = service;
+        }
 
+
+        void IInitializable.Initialize()
+        {
             RestoreEquation();
         }
 
         private async void RestoreEquation()
         {
-            var savedEquation = await _equationStorage.Get();
+            var savedEquation = _equation = await _service.GetSavedEquation();
             _view.Expression = savedEquation.Expression;
         }
 
@@ -66,31 +69,23 @@ namespace Calculator
         private void OnCreateNewEquation()
         {
             _view.ClearExpression();
-            EnableSave();
-        }
-
-        private void EnableSave()
-        {
-            _isSaveEnabled = true;
-        }
-
-        private void DisableSave()
-        {
-            _isSaveEnabled = false;
         }
 
 
-        public void CalculateResult()
+        void ICalculatorPresenter.OnExpressionChanged(string expression)
         {
-            var equation = Equation;
-            switch (equation.Validity)
+            _equation = _service.Equation = new Equation(expression);
+        }
+
+        void ICalculatorPresenter.CalculateResult()
+        {
+            switch (_equation.Validity)
             {
                 case ExpressionValidity.Valid:
-                    ShowEvaluationResult(equation);
+                    ShowEvaluationResult(_equation);
                     break;
                 case ExpressionValidity.Invalid:
                     ShowError();
-                    DisableSave();
                     break;
                 case ExpressionValidity.Empty: break;
                 default: throw new ArgumentOutOfRangeException();
@@ -107,18 +102,6 @@ namespace Calculator
         {
             _view.ShowError(ErrorMessage);
             _sorryDialog.Show();
-        }
-
-        public void OnApplicationQuit()
-        {
-            if (_isSaveEnabled)
-            {
-                _equationStorage.Save(new EquationDto(Equation.Expression));
-            }
-            else
-            {
-                _equationStorage.Clear();
-            }
         }
 
 

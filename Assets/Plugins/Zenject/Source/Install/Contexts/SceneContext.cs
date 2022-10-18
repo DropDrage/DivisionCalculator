@@ -1,14 +1,17 @@
 #if !NOT_UNITY3D
 
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using ModestTree;
 using ModestTree.Util;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 using Zenject.Internal;
+#endif
 
 namespace Zenject
 {
@@ -105,8 +108,25 @@ namespace Zenject
             set { _parentNewObjectsUnderSceneContext = value; }
         }
 
-        public void Awake()
+#if UNITY_EDITOR
+        // Required for disabling domain reload in enter the play mode feature. See: https://docs.unity3d.com/Manual/DomainReloading.html
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStaticValues()
         {
+            if (!EditorSettings.enterPlayModeOptionsEnabled)
+            {
+                return;
+            }
+
+            ExtraBindingsInstallMethod = null;
+            ParentContainers = null;
+            ExtraBindingsLateInstallMethod = null;
+        }
+#endif
+        protected override void Awake()
+        {
+            base.Awake();
+
 #if ZEN_INTERNAL_PROFILING
             ProfileTimers.ResetAll();
             using (ProfileTimers.CreateTimedBlock("Other"))
@@ -115,6 +135,22 @@ namespace Zenject
                 Initialize();
             }
         }
+
+#if UNITY_EDITOR
+        protected override void ResetInstanceFields()
+        {
+            base.ResetInstanceFields();
+
+            _container = null;
+            _decoratorContexts.Clear();
+            _hasInstalled = false;
+            _hasResolved = false;
+            PreInstall = null;
+            PostInstall = null;
+            PreResolve = null;
+            PostResolve = null;
+        }
+#endif
 
         public void Validate()
         {
