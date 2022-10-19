@@ -1,12 +1,13 @@
 ﻿using SorryDialog;
 using TMPro;
 using UnityEngine;
+using Zenject;
 
 namespace Calculator
 {
     public interface ICalculatorView
     {
-        string Expression { get; set; }
+        string Expression { set; }
 
         void ShowResult(string result);
 
@@ -20,35 +21,32 @@ namespace Calculator
         [SerializeField] private TMP_InputField expressionInput;
 
         private ICalculatorPresenter _presenter;
+        private ISorryDialogView _sorryDialog;
 
         public string Expression
         {
-            get => expressionInput.text;
             set => expressionInput.text = value;
         }
 
 
-        private void Awake()
+        [Inject]
+        private void Construct(ICalculatorPresenter presenter, ISorryDialogView sorryDialog)
         {
-            _presenter = new CalculatorPresenter(this);
+            _presenter = presenter;
+            _sorryDialog = sorryDialog;
         }
 
-        private void OnApplicationQuit()
-        {
-            _presenter.OnApplicationQuit();
-        }
 
         private void OnDestroy()
         {
-            _presenter.Dispose();
+            _sorryDialog?.RemoveOnNewEquationListener(_presenter.OnCreateNewEquation);
         }
 
 
-        public void OnSorryDialogInitialized(ISorryDialogPresenter sorryDialog)
+        public void OnExpressionChanged(string expression)
         {
-            _presenter.SorryDialog = sorryDialog;
+            _presenter.OnExpressionChanged(expression);
         }
-
 
         public void CalculateResult()
         {
@@ -56,17 +54,20 @@ namespace Calculator
         }
 
 
-        public void ShowResult(string result)
+        void ICalculatorView.ShowResult(string result)
         {
             Expression = result;
         }
 
-        public void ShowError(string error)
+        void ICalculatorView.ShowError(string error)
         {
             Expression = error;
+
+            _sorryDialog.Show();
+            _sorryDialog.AddOnNewEquationListener(_presenter.OnCreateNewEquation);
         }
 
-        public void ClearExpression()
+        void ICalculatorView.ClearExpression()
         {
             Expression = string.Empty;
         }

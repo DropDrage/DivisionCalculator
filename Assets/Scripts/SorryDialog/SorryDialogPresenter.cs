@@ -1,13 +1,13 @@
 ﻿using System;
+using Data;
 using UnityEngine;
+using Zenject;
 
 namespace SorryDialog
 {
-    public interface ISorryDialogPresenter
+    public interface ISorryDialogPresenter : IDisposable
     {
         event Action CreateNewEquation;
-
-        void Show();
 
         void NewEquation();
 
@@ -16,31 +16,42 @@ namespace SorryDialog
 
     public class SorryDialogPresenter : ISorryDialogPresenter
     {
-        private readonly ISorryDialogView _view;
+        [Inject] private readonly ISorryDialogView _view;
+        private readonly EquationService _equationService;
 
         public event Action CreateNewEquation;
 
 
-        public SorryDialogPresenter(ISorryDialogView view)
+        public SorryDialogPresenter(EquationService equationService)
         {
-            _view = view;
+            _equationService = equationService;
         }
 
 
-        public void Show()
-        {
-            _view.Show();
-        }
-
-        public void NewEquation()
+        void ISorryDialogPresenter.NewEquation()
         {
             CreateNewEquation?.Invoke();
+            ClearEvents();
             _view.Close();
         }
 
-        public void Quit()
+        void ISorryDialogPresenter.Quit()
         {
+            _equationService.IsSavingEnabled = false;
+            ClearEvents();
             Application.Quit();
+        }
+
+
+        public void Dispose()
+        {
+            ClearEvents();
+        }
+
+
+        private void ClearEvents()
+        {
+            CreateNewEquation = null;
         }
     }
 }

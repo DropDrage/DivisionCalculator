@@ -1,11 +1,16 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
+﻿using System;
+using UnityEngine;
+using Zenject;
 
 namespace SorryDialog
 {
     public interface ISorryDialogView
     {
         void Show();
+
+        void AddOnNewEquationListener(Action onNewEquation);
+
+        void RemoveOnNewEquationListener(Action onNewEquation);
 
         void Close();
     }
@@ -14,23 +19,17 @@ namespace SorryDialog
     {
         private ISorryDialogPresenter _presenter;
 
-        public UnityEvent<ISorryDialogPresenter> initialized;
 
-
-        private void Start()
+        [Inject]
+        private void Construct(ISorryDialogPresenter presenter)
         {
-            Close();
-
-            _presenter = new SorryDialogPresenter(this);
-
-            InvokeInitialized();
+            _presenter = presenter;
         }
 
-        private void InvokeInitialized()
+
+        private void OnDestroy()
         {
-            initialized.Invoke(_presenter);
-            initialized.RemoveAllListeners();
-            initialized = null;
+            _presenter.Dispose();
         }
 
 
@@ -45,12 +44,22 @@ namespace SorryDialog
         }
 
 
-        public void Show()
+        void ISorryDialogView.Show()
         {
             gameObject.SetActive(true);
         }
 
-        public void Close()
+        void ISorryDialogView.AddOnNewEquationListener(Action onNewEquation)
+        {
+            _presenter.CreateNewEquation += onNewEquation;
+        }
+
+        void ISorryDialogView.RemoveOnNewEquationListener(Action onNewEquation)
+        {
+            _presenter.CreateNewEquation -= onNewEquation;
+        }
+
+        void ISorryDialogView.Close()
         {
             gameObject.SetActive(false);
         }
